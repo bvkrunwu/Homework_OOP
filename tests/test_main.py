@@ -1,4 +1,4 @@
-from main import Product, Category
+from main import Category, Product
 
 
 def test_product_initialization(product):
