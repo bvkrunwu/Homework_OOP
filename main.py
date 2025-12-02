@@ -4,7 +4,7 @@ class Product:
     def __init__(self, name, description, price, quantity):
         self.name = name
         self.description = description
-        self._price = price
+        self.__price = price
         self.quantity = quantity
 
     @classmethod
@@ -22,8 +22,8 @@ class Product:
             if existing_product.name == name:
                 existing_product.quantity += quantity
 
-                if price > existing_product._price:
-                    existing_product._price = price
+                if price > existing_product.price:
+                    existing_product.price = price
 
                 return existing_product
 
@@ -31,7 +31,7 @@ class Product:
 
     @property
     def price(self):
-        return self._price
+        return self.__price
 
     @price.setter
     def price(self, value):
@@ -40,13 +40,13 @@ class Product:
             print("Цена не должна быть нулевая или отрицательная")
             return
 
-        if value < self._price:
-            user_input = input(f"Цена понижается с {self._price} до {value}. Подтвердить (y/n)? ")
+        if value < self.__price:
+            user_input = input(f"Цена понижается с {self.__price} до {value}. Подтвердить (y/n)? ")
             if user_input.lower() != "y":
                 print("Изменение цены отменено")
                 return
 
-        self._price = value
+        self.__price = value
 
 
 class Category:
