@@ -1,52 +1,113 @@
+from io import StringIO
+from unittest.mock import patch
+
+import pytest
+
 from main import Category, Product
 
 
-def test_product_initialization(product):
-    assert product.name == "Samsung Galaxy C23 Ultra"
-    assert product.description == "256GB, Серый цвет, 200MP камера"
-    assert product.price == 180000.0
-    assert product.quantity == 5
+@pytest.fixture
+def product():
+    return Product("Samsung Galaxy C23 Ultra", "256GB, Серый цвет, 200MP камера", 180000.0, 5)
 
-def test_category_initialization(category):
-    assert category.name == "Телефоны"
-    assert category.description == "Современные смартфоны премиум-класса"
-    assert isinstance(category.products, list)
-    assert all(isinstance(item, Product) for item in category.products)
 
-def test_product_count(category):
-    initial_product_count = Category.product_count
-    new_products = [Product("New Phone", "", 100000.0, 3)]
-    Category("Ноутбуки", "Лучшие ноутбуки", new_products)
-    assert Category.product_count == initial_product_count + len(new_products)
+@pytest.fixture
+def category():
+    return Category("Телефоны", "Современные смартфоны премиум-класса")
 
-def test_category_count(category):
-    initial_category_count = Category.category_count
-    Category("Планшеты", "Популярные планшеты", [])
-    assert Category.category_count == initial_category_count + 1
 
-def test_reset_counts():
-    original_category_count = Category.category_count
-    original_product_count = Category.product_count
-    Category("Игровые консоли", "Новые игровые приставки", [])
-    assert Category.category_count == original_category_count + 1
-    assert Category.product_count == original_product_count
+def test_private_price_attribute(product):
+    with pytest.raises(AttributeError):
+        product.__price  # Исправлен на __price
 
-def test_integrated_scenario():
-    # Принудительная очистка статических переменных перед тестом
-    Category.category_count = 0
-    Category.product_count = 0
 
-    p1 = Product("Galaxy Tab S8", "Таблетка Samsung", 80000.0, 10)
-    p2 = Product("iPad Air", "Apple планшет", 70000.0, 15)
-    cat1 = Category("Планшеты", "Различные модели планшетов", [p1, p2])
-    assert cat1.name == "Планшеты"
-    assert len(cat1.products) == 2
-    assert Category.category_count == 1
-    assert Category.product_count == 2
+def test_price_getter_setter_valid_value(product):
+    product.price = 200000.0
+    assert product.price == 200000.0
 
-    p3 = Product("MacBook Pro", "Ноутбук Apple", 200000.0, 5)
-    cat2 = Category("Ноутбуки", "Производительные ноутбуки", [p3])
-    assert cat2.name == "Ноутбуки"
-    assert len(cat2.products) == 1
-    assert Category.category_count == 2
-    assert Category.product_count == 3
+
+def test_price_setter_negative_value(product):
+    with patch("sys.stdout", new=StringIO()) as fake_output:
+        product.price = -100
+        output = fake_output.getvalue().strip()
+        assert output == "Цена не должна быть нулевая или отрицательная"
+        assert product.price == 180000.0
+
+
+def test_price_setter_zero_value(product):
+    with patch("sys.stdout", new=StringIO()) as fake_output:
+        product.price = 0
+        output = fake_output.getvalue().strip()
+        assert output == "Цена не должна быть нулевая или отрицательная"
+        assert product.price == 180000.0
+
+
+def test_price_reduction_confirmation_yes(product):
+    with patch("builtins.input", side_effect=["y"]):
+        product.price = 150000.0
+        assert product.price == 150000.0
+
+
+def test_price_reduction_confirmation_no(product):
+    with patch("builtins.input", side_effect=["n"]), patch("sys.stdout", new=StringIO()) as fake_output:
+        product.price = 150000.0
+        output = fake_output.getvalue().strip()
+        assert output == "Изменение цены отменено"
+        assert product.price == 180000.0
+
+
+def test_private_products_attribute(category):
+    with pytest.raises(AttributeError):
+        category.__products
+
+
+def test_new_product_creation():
+    data = {"name": "Test Product", "description": "Test Description", "price": 10000.0, "quantity": 10}
+
+    product = Product.new_product(data)
+    assert product.name == "Test Product"
+    assert product.description == "Test Description"
+    assert product.price == 10000.0
+    assert product.quantity == 10
+
+
+def test_new_product_existing_duplicate():
+    existing_product = Product("Duplicate Test", "Existing Desc", 5000.0, 5)
+    duplicate_data = {"name": "Duplicate Test", "description": "New Desc", "price": 7000.0, "quantity": 10}
+
+    updated_product = Product.new_product(duplicate_data, [existing_product])
+    assert updated_product is existing_product
+    assert updated_product.quantity == 15
+    assert updated_product.price == 7000.0
+
+
+def test_new_product_higher_price():
+    existing_product = Product("Higher Price Test", "Desc", 5000.0, 5)
+    higher_price_data = {"name": "Higher Price Test", "description": "New Desc", "price": 7000.0, "quantity": 10}
+
+    updated_product = Product.new_product(higher_price_data, [existing_product])
+    assert updated_product.price == 7000.0
+
+
+def test_new_product_lower_price():
+    existing_product = Product("Lower Price Test", "Desc", 7000.0, 5)
+    lower_price_data = {"name": "Lower Price Test", "description": "New Desc", "price": 5000.0, "quantity": 10}
+
+    updated_product = Product.new_product(lower_price_data, [existing_product])
+    assert updated_product.price == 7000.0
+
+
+def test_category_products_property(category):
+    product1 = Product("Product A", "", 10000.0, 3)
+    product2 = Product("Product B", "", 15000.0, 5)
+
+    category.add_product(product1)
+    category.add_product(product2)
+
+    expected_output = "Product A, 10000.0 руб. Остаток: 3 шт.\n" "Product B, 15000.0 руб. Остаток: 5 шт."
+
+    assert category.products == expected_output
+
+
+def test_empty_category_products(category):
+    assert category.products == ""
