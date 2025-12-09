@@ -3,7 +3,7 @@ from unittest.mock import patch
 
 import pytest
 
-from src.product import Product
+from src.product import LawnGrass, Product, Smartphone
 
 
 @pytest.fixture
@@ -159,3 +159,97 @@ def test_product_negative_quantity_initial():
     assert product.name == "Negative Qty"
     assert product.price == 100.0
     assert isinstance(product, Product)
+
+
+def test_smartphone_init():
+    smartphone = Smartphone(
+        name="iPhone 15",
+        description="256GB, Black",
+        price=120000.0,
+        quantity=3,
+        efficiency=95,
+        model="A2846",
+        memory="256GB",
+        color="Black",
+    )
+    assert smartphone.name == "iPhone 15"
+    assert smartphone.description == "256GB, Black"
+    assert smartphone.price == 120000.0
+    assert smartphone.quantity == 3
+    assert smartphone.efficiency == 95
+    assert smartphone.model == "A2846"
+    assert smartphone.memory == "256GB"
+    assert smartphone.color == "Black"
+
+
+def test_lawngrass_init():
+    lawngrass = LawnGrass(
+        name="Газонная трава",
+        description="Семена для газона",
+        price=500.0,
+        quantity=10,
+        country="Россия",
+        germination_period="10-14 дней",
+        color="Зелёный",
+    )
+    assert lawngrass.name == "Газонная трава"
+    assert lawngrass.description == "Семена для газона"
+    assert lawngrass.price == 500.0
+    assert lawngrass.quantity == 10
+    assert lawngrass.country == "Россия"
+    assert lawngrass.germination_period == "10-14 дней"
+    assert lawngrass.color == "Зелёный"
+
+
+def test_smartphone_add_same_type():
+    smartphone1 = Smartphone("S1", "", 10000.0, 2, 90, "M1", "128GB", "Black")
+    smartphone2 = Smartphone("S2", "", 15000.0, 3, 92, "M2", "256GB", "White")
+    result = smartphone1 + smartphone2
+    assert result == 65000.0  # (10000×2) + (15000×3) = 20000 + 45000
+
+
+def test_lawngrass_add_same_type():
+    lawngrass1 = LawnGrass("L1", "", 200.0, 5, "RU", "7-10 дней", "Green")
+    lawngrass2 = LawnGrass("L2", "", 300.0, 4, "EU", "5-8 дней", "Dark Green")
+    result = lawngrass1 + lawngrass2
+    assert result == 2200.0  # (200×5) + (300×4) = 1000 + 1200
+
+
+def test_smartphone_add_different_type(product):
+    smartphone = Smartphone("Test", "", 10000.0, 1, 90, "M", "128GB", "Black")
+    with pytest.raises(TypeError) as excinfo:
+        _ = smartphone + product
+    assert str(excinfo.value) == "Нельзя складывать товары разных категорий"
+
+
+def test_lawngrass_add_different_type(product):
+    lawngrass = LawnGrass("Test", "", 500.0, 2, "RU", "7-10 дней", "Green")
+    with pytest.raises(TypeError) as excinfo:
+        _ = lawngrass + product
+    assert str(excinfo.value) == "Нельзя складывать товары разных категорий"
+
+
+def test_smartphone_add_with_none():
+    smartphone = Smartphone("Test", "", 10000.0, 1, 90, "M", "128GB", "Black")
+    with pytest.raises(TypeError) as excinfo:
+        _ = smartphone + None
+    assert str(excinfo.value) == "Нельзя складывать товары разных категорий"
+
+
+def test_lawngrass_add_with_none():
+    lawngrass = LawnGrass("Test", "", 500.0, 2, "RU", "7-10 дней", "Green")
+    with pytest.raises(TypeError) as excinfo:
+        _ = lawngrass + None
+    assert str(excinfo.value) == "Нельзя складывать товары разных категорий"
+
+
+def test_smartphone_str_representation():
+    smartphone = Smartphone("iPhone 15", "256GB, Black", 120000.0, 3, 95, "A2846", "256GB", "Black")
+    expected = "iPhone 15, 120000.0 руб. Остаток: 3 шт."
+    assert str(smartphone) == expected
+
+
+def test_lawngrass_str_representation():
+    lawngrass = LawnGrass("Газонная трава", "Семена для газона", 500.0, 10, "Россия", "10-14 дней", "Зелёный")
+    expected = "Газонная трава, 500.0 руб. Остаток: 10 шт."
+    assert str(lawngrass) == expected
