@@ -6,6 +6,8 @@ from src.product import Product
 
 @pytest.fixture
 def category():
+    # Обнуляем счётчик перед каждым тестом
+    Category.product_count = 0
     return Category("Электроника", "Категория электроники")
 
 
@@ -25,7 +27,7 @@ def test_add_multiple_products(category):
     product2 = Product("Ноутбук", "Легкий ноутбук", 20000.0, 5)
     category.add_product(product1)
     category.add_product(product2)
-    expected_output = "Смартфон, 10000.0 руб. Остаток: 10 шт.\n" "Ноутбук, 20000.0 руб. Остаток: 5 шт."
+    expected_output = "Смартфон, 10000.0 руб. Остаток: 10 шт.\nНоутбук, 20000.0 руб. Остаток: 5 шт."
     assert category.products == expected_output
 
 
@@ -80,7 +82,7 @@ def test_iterator_multiple_products(category):
         except StopIteration:
             break
 
-    expected_string = "Смартфон, 10000.0 руб. Остаток: 10 шт.\n" "Ноутбук, 20000.0 руб. Остаток: 5 шт."
+    expected_string = "Смартфон, 10000.0 руб. Остаток: 10 шт.\nНоутбук, 20000.0 руб. Остаток: 5 шт."
     assert "".join(all_chars) == expected_string
 
 
@@ -89,3 +91,38 @@ def test_iterator_empty_category():
     iterator = CategoryIterators(empty_category)
     with pytest.raises(StopIteration):
         next(iterator)
+
+
+def test_add_product_invalid_type_catches_typeerror(category):
+    """Проверка, что добавление не‑продукта вызывает TypeError и не увеличивает счётчик."""
+    initial_count = Category.product_count  # Запоминаем начальное значение
+    invalid_objects = ["Не продукт", 123, None, [], {}, lambda: None]
+
+    for obj in invalid_objects:
+        try:
+            category.add_product(obj)
+            assert False, f"Не возникло TypeError при добавлении {type(obj).__name__}"
+        except TypeError as e:
+            assert "Можно добавлять только объекты класса Product или его наследников" in str(e)
+
+    # Убедимся, что счётчик не изменился и список пуст
+    assert Category.product_count == initial_count
+    assert len(category.get_products()) == 0
+
+
+def test_add_product_none_catches_typeerror(category):
+    """Проверка, что None вызывает TypeError."""
+    try:
+        category.add_product(None)
+        assert False, "Не возникло TypeError при добавлении None"
+    except TypeError as e:
+        assert "Можно добавлять только объекты класса Product или его наследников" in str(e)
+
+
+def test_add_product_string_catches_typeerror(category):
+    """Проверка, что строка вызывает TypeError."""
+    try:
+        category.add_product("Это не продукт")
+        assert False, "Не возникло TypeError при добавлении строки"
+    except TypeError as e:
+        assert "Можно добавлять только объекты класса Product или его наследников" in str(e)
