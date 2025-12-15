@@ -19,7 +19,9 @@ def test_create_category(category):
 def test_add_product(category):
     product = Product("Смартфон", "Новый смартфон", 10000.0, 10)
     category.add_product(product)
-    assert category.products == "Смартфон, 10000.0 руб. Остаток: 10 шт."
+    # Сравниваем не строку, а проверяем наличие продукта в списке
+    assert len(category.products) == 1
+    assert category.products[0] == product
 
 
 def test_add_multiple_products(category):
@@ -27,12 +29,14 @@ def test_add_multiple_products(category):
     product2 = Product("Ноутбук", "Легкий ноутбук", 20000.0, 5)
     category.add_product(product1)
     category.add_product(product2)
-    expected_output = "Смартфон, 10000.0 руб. Остаток: 10 шт.\nНоутбук, 20000.0 руб. Остаток: 5 шт."
-    assert category.products == expected_output
+    assert len(category.products) == 2
+    assert category.products[0] == product1
+    assert category.products[1] == product2
 
 
 def test_empty_category(category):
-    assert category.products == ""
+    # Если products — список, то он должен быть пустым, а не строкой
+    assert len(category.products) == 0
 
 
 def test_empty_str_representation(category):
@@ -49,20 +53,20 @@ def test_iterator_single_product(category):
     category.add_product(single_product)
     iterator = CategoryIterators(category)
 
-    first_char = next(iterator)
-    assert isinstance(first_char, str)
-    assert first_char == "С"
+    first_product = next(iterator)
+    assert isinstance(first_product, Product)
+    assert first_product.name == "Смартфон"
 
-    all_chars = [first_char]
+    all_products = [first_product]
     while True:
         try:
-            char = next(iterator)
-            all_chars.append(char)
+            product = next(iterator)
+            all_products.append(product)
         except StopIteration:
             break
 
-    expected_string = "Смартфон, 10000.0 руб. Остаток: 10 шт."
-    assert "".join(all_chars) == expected_string
+    assert len(all_products) == 1
+    assert all_products[0] == single_product
 
 
 def test_iterator_multiple_products(category):
@@ -72,18 +76,17 @@ def test_iterator_multiple_products(category):
     category.add_product(product2)
     iterator = CategoryIterators(category)
 
-    first_char = next(iterator)
-    all_chars = [first_char]
-
+    products_list = []
     while True:
         try:
-            char = next(iterator)
-            all_chars.append(char)
+            product = next(iterator)
+            products_list.append(product)
         except StopIteration:
             break
 
-    expected_string = "Смартфон, 10000.0 руб. Остаток: 10 шт.\nНоутбук, 20000.0 руб. Остаток: 5 шт."
-    assert "".join(all_chars) == expected_string
+    assert len(products_list) == 2
+    assert products_list[0] == product1
+    assert products_list[1] == product2
 
 
 def test_iterator_empty_category():
@@ -107,7 +110,7 @@ def test_add_product_invalid_type_catches_typeerror(category):
 
     # Убедимся, что счётчик не изменился и список пуст
     assert Category.product_count == initial_count
-    assert len(category.get_products()) == 0
+    assert len(category.products) == 0
 
 
 def test_add_product_none_catches_typeerror(category):
