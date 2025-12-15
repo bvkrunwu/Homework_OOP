@@ -7,6 +7,7 @@ class Category:
     Содержит название, описание и приватный список товаров в категории.
     """
 
+    category_count = 0
     product_count = 0
 
     def __init__(self, name, description, products=None):
@@ -14,6 +15,7 @@ class Category:
         self.name = name
         self.description = description
         self.__products = []
+        Category.category_count += 1
 
         if products:
             for product in products:
@@ -35,20 +37,11 @@ class Category:
 
     @property
     def products(self):
-
-        if not self.__products:
-            return self.__products or ""
-
-        product_lines = []
-        for product in self.__products:
-            line = f"{product.name}, {product.price} руб. Остаток: {product.quantity} шт."
-            product_lines.append(line)
-
-        return "\n".join(product_lines)
+        return self.__products
 
 
 class CategoryIterators:
-    """Вспомогательный класс для итерации по товарам категории"""
+    """Вспомогательный класс для итерации п товарам категории"""
 
     def __init__(self, category):
         self.category = category
