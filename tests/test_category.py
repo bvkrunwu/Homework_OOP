@@ -97,7 +97,7 @@ def test_iterator_empty_category():
 
 
 def test_add_product_invalid_type_catches_typeerror(category):
-    """Проверка, что добавление не‑продукта вызывает TypeError и не увеличивает счётчик."""
+    """Проверка, что добавление не-продукта вызывает TypeError и не увеличивает счётчик."""
     initial_count = Category.product_count  # Запоминаем начальное значение
     invalid_objects = ["Не продукт", 123, None, [], {}, lambda: None]
 
@@ -129,3 +129,36 @@ def test_add_product_string_catches_typeerror(category):
         assert False, "Не возникло TypeError при добавлении строки"
     except TypeError as e:
         assert "Можно добавлять только объекты класса Product или его наследников" in str(e)
+
+
+def test_middle_price_with_products(category):
+    """Средняя цена при наличии двух товаров."""
+    product1 = Product("Смартфон", "Новый смартфон", 10000.0, 10)
+    product2 = Product("Ноутбук", "Легкий ноутбук", 20000.0, 5)
+    category.add_product(product1)
+    category.add_product(product2)
+    expected_average = (10000.0 + 20000.0) / 2
+    assert category.middle_price() == expected_average
+
+
+def test_middle_price_no_products(category):
+    """Средняя цена при отсутствии товаров."""
+    assert category.middle_price() == 0
+
+
+def test_middle_price_one_product(category):
+    """Средняя цена при одном товаре."""
+    product = Product("Смартфон", "Новый смартфон", 5000.0, 10)
+    category.add_product(product)
+    assert category.middle_price() == 5000.0
+
+
+def test_middle_price_same_prices(category):
+    """Средняя цена при трех товарах с одинаковой ценой."""
+    product1 = Product("Смартфон", "Новый смартфон", 10000.0, 10)
+    product2 = Product("Ноутбук", "Легкий ноутбук", 10000.0, 5)
+    product3 = Product("Планшет", "Компактный планшет", 10000.0, 3)
+    category.add_product(product1)
+    category.add_product(product2)
+    category.add_product(product3)
+    assert category.middle_price() == 10000.0
