@@ -130,12 +130,6 @@ def test_str_representation():
     assert str(product) == expected
 
 
-def test_str_zero_quantity():
-    product = Product("Out of Stock", "Нет в наличии", 500.0, 0)
-    expected = "Out of Stock, 500.0 руб. Остаток: 0 шт."
-    assert str(product) == expected
-
-
 def test_str_large_quantity():
     product = Product("Bulk Item", "Много штук", 100.0, 1000)
     expected = "Bulk Item, 100.0 руб. Остаток: 1000 шт."
@@ -150,15 +144,6 @@ def test_product_zero_price_initial():
         output = fake_output.getvalue().strip()
         assert output == "Цена не должна быть нулевая или отрицательная"
     assert product.price == 0.0  # остаётся нулём
-
-
-def test_product_negative_quantity_initial():
-    """Тест: продукт может быть создан с отрицательным значением quantity."""
-    product = Product("Negative Qty", "Странный товар", 100.0, -5)
-    assert product.quantity == -5
-    assert product.name == "Negative Qty"
-    assert product.price == 100.0
-    assert isinstance(product, Product)
 
 
 def test_smartphone_init():
@@ -253,3 +238,20 @@ def test_lawngrass_str_representation():
     lawngrass = LawnGrass("Газонная трава", "Семена для газона", 500.0, 10, "Россия", "10-14 дней", "Зелёный")
     expected = "Газонная трава, 500.0 руб. Остаток: 10 шт."
     assert str(lawngrass) == expected
+
+
+# Исправленные тесты на недопустимые значения количества товара
+
+
+def test_zero_quantity_exception():
+    """Тест: попытка создать продукт с нулевым количеством должна возбуждать исключение."""
+    with pytest.raises(ValueError) as excinfo:
+        Product("Out of Stock", "Нет в наличии", 500.0, 0)
+    assert str(excinfo.value) == "Товар с нулевым количеством не может быть добавлен"
+
+
+def test_negative_quantity_exception():
+    """Тест: попытка создать продукт с отрицательным количеством должна возбуждать исключение."""
+    with pytest.raises(ValueError) as excinfo:
+        Product("Negative Qty", "Странный товар", 100.0, -5)
+    assert str(excinfo.value) == "Количество товара не может быть отрицательным"
