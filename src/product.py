@@ -7,6 +7,11 @@ class Product(PrintMixin, BaseProduct):
 
     def __init__(self, name, description, price, quantity):
         """Инициализирует экземпляр продукта."""
+        if quantity == 0:
+            raise ValueError("Товар с нулевым количеством не может быть добавлен")
+        elif quantity < 0:
+            raise ValueError("Количество товара не может быть отрицательным")
+
         super().__init__(name, description, price, quantity)
 
     @classmethod
@@ -31,11 +36,12 @@ class Product(PrintMixin, BaseProduct):
         return cls(name, description, price, quantity)
 
     def __str__(self):
-        """Возвращает строковое представление продукта."""
+        """Строковое представление категории."""
 
         return f"{self.name}, {self._BaseProduct__price} руб. Остаток: {self.quantity} шт."
 
     def __repr__(self):
+        """Возвращает строковое представление объекта для целей отладки и логирования."""
         return str(self)
 
     def __add__(self, other):
